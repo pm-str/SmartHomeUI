@@ -5,10 +5,117 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Menu;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Adapter;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+class AdapterData {
+    public String name;
+    public String description;
+    public String type;
+
+    AdapterData(String name, String description, String type) {
+        this.name = name;
+        this.description = description;
+        this.type = type;
+    }
+
+    public String getImage() {
+        switch (this.type) {
+            case "camera":
+                return "path/camera.png";
+            case "temp_sensor":
+                return "path/temp_sensor.png";
+            default:
+                return "path/default_device.png";
+        }
+    }
+}
+
+class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
+    private List<AdapterData> values;
+
+    // Provide a reference to the views for each data item
+    // Complex data items may need more than one view per item, and
+    // you provide access to all the views for a data item in a view holder
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        // each data item is just a string in this case
+        TextView txtHeader;
+        TextView txtFooter;
+        public View layout;
+
+        ViewHolder(View v) {
+            super(v);
+            layout = v;
+            txtHeader = (TextView) v.findViewById(R.id.firstLine);
+            txtFooter = (TextView) v.findViewById(R.id.secondLine);
+        }
+    }
+
+    public void add(int position, AdapterData item) {
+        values.add(position, item);
+        notifyItemInserted(position);
+    }
+
+    private void remove(int position) {
+        values.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    // Provide a suitable constructor (depends on the kind of dataset)
+    DeviceAdapter(List<AdapterData> myDataset) {
+        values = myDataset;
+    }
+
+    // Create new views (invoked by the layout manager)
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent,
+                                         int viewType) {
+        // create a new view
+        LayoutInflater inflater = LayoutInflater.from(
+                parent.getContext());
+        View v =
+                inflater.inflate(R.layout.row_layout, parent, false);
+        // set the view's size, margins, paddings and layout parameters
+        ViewHolder vh = new ViewHolder(v);
+        return vh;
+    }
+
+    // Replace the contents of a view (invoked by the layout manager)
+    @Override
+    public void onBindViewHolder(ViewHolder holder, final int position) {
+        // - get element from your dataset at this position
+        // - replace the contents of the view with that element
+        final AdapterData item = values.get(position);
+        holder.txtHeader.setText(item.name);
+        holder.txtHeader.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                remove(position);
+            }
+        });
+
+        holder.txtFooter.setText(item.description);
+    }
+
+    // Return the size of your dataset (invoked by the layout manager)
+    @Override
+    public int getItemCount() {
+        return values.size();
+    }
+
+}
 
 public class SensorsActivity extends AppCompatActivity {
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -34,6 +141,20 @@ public class SensorsActivity extends AppCompatActivity {
         }
     };
 
+    private List<AdapterData> getSensorsData() {
+        List<AdapterData> data = new ArrayList<>();
+
+        // TODO: here will be rest api request in future
+        for (int i=0; i<100; i++) {
+            data.add(new AdapterData(
+                    "Тестовый датчик " + i,
+                    "Здесь идет описание",
+                    Integer.toString(i%3)));
+        }
+
+        return data;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,5 +164,16 @@ public class SensorsActivity extends AppCompatActivity {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         navigation.getMenu().getItem(1).setChecked(true);
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.home_recycler_view);
+        recyclerView.setHasFixedSize(true);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        List<AdapterData> input = getSensorsData();
+
+        DeviceAdapter mAdapter = new DeviceAdapter(input);
+
+        recyclerView.setAdapter(mAdapter);
     }
 }

@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
 import android.view.MenuItem;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -16,6 +15,8 @@ public class SettingsActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_home:
+                    Intent intent1 = new Intent(SettingsActivity.this, HomeActivity.class);
+                    startActivity(intent1);
                     return true;
                 case R.id.navigation_dashboard:
                     Intent intent2 = new Intent(SettingsActivity.this, SensorsActivity.class);

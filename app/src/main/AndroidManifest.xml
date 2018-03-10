@@ -25,14 +25,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
-            android:label="@string/title_activity_main" />
-        <activity android:name=".SensorsActivity" />
-        <activity android:name=".AlertsActivity" />
-        <activity android:name=".SettingsActivity" />
-        <activity android:name=".HomeActivity">
-
-        </activity>
+            android:name=".SensorsActivity"
+            android:noHistory="true"/>
+        <activity
+            android:name=".AlertsActivity"
+            android:noHistory="true"/>
+        <activity
+            android:name=".SettingsActivity"
+            android:noHistory="true"/>
+        <activity
+            android:name=".HomeActivity"
+            android:noHistory="true"/>
     </application>
 
 </manifest>
