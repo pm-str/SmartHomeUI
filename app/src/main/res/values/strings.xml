@@ -16,8 +16,10 @@
     <string name="password_required">Пароль</string>
     <string name="title_activity_main">Smart Home UI</string>
     <string name="title_home">Помещения</string>
+    <string name="title_back">Назад</string>
     <string name="title_sensors">Датчики</string>
     <string name="title_settings">Настройки</string>
+    <string name="title_particular_sensor">Параметры датчика</string>
     <string name="title_notifications">Уведомления</string>
     <string name="action_log_in">Войти</string>
     <string name="title_home_rooms">Помещения</string>

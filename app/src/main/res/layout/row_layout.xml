@@ -15,10 +15,11 @@
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="30dp"
+        android:layout_width="40dp"
         android:layout_height="15dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentTop="true"
+        android:layout_marginRight="10dp"
         android:contentDescription="TODO"
         android:src="@mipmap/ic_launcher" />
 
@@ -40,7 +41,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:layout_alignWithParentIfMissing="true"
-        android:layout_toEndOf="@id/icon"
+        android:layout_toEndOf="@+id/icon"
         android:gravity="center_vertical"
         android:text="Example application"
         android:textSize="16sp" />

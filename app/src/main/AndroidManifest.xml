@@ -37,7 +37,8 @@
             android:name=".HomeActivity"
             android:noHistory="true" />
         <activity
-            android:name=".ParticularSensorActivity" />
+            android:name=".ParticularSensorActivity"
+            android:noHistory="true" />
     </application>
 
 </manifest>
