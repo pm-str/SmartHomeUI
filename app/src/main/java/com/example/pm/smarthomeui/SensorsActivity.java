@@ -1,5 +1,6 @@
 package com.example.pm.smarthomeui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -7,40 +8,48 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
+import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 class AdapterData {
     public String name;
     public String description;
     public String type;
+    public Integer sensorState;
 
-    AdapterData(String name, String description, String type) {
+    AdapterData(String name, String description, String type, Integer sensorState) {
         this.name = name;
         this.description = description;
         this.type = type;
+        this.sensorState = sensorState;
     }
 
-    public String getImage() {
+    public Integer getIcon() {
         switch (this.type) {
             case "camera":
-                return "path/camera.png";
+                return R.drawable.photo_camera;
             case "temp_sensor":
-                return "path/temp_sensor.png";
+                return R.drawable.thermometer;
+            case "door_switch":
+                return R.drawable.doorway;
             default:
-                return "path/default_device.png";
+                return R.drawable.sata;
         }
     }
 }
 
 class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
+    private Context context;
     private List<AdapterData> values;
 
     // Provide a reference to the views for each data item
@@ -48,15 +57,20 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
     // you provide access to all the views for a data item in a view holder
     public class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
-        TextView txtHeader;
-        TextView txtFooter;
+        TextView description;
+        TextView name;
+        ImageView icon;
+        Switch switch1;
+
         public View layout;
 
         ViewHolder(View v) {
             super(v);
             layout = v;
-            txtHeader = (TextView) v.findViewById(R.id.firstLine);
-            txtFooter = (TextView) v.findViewById(R.id.secondLine);
+            icon = (ImageView) v.findViewById(R.id.icon);
+            description = (TextView) v.findViewById(R.id.description);
+            name = (TextView) v.findViewById(R.id.name);
+            switch1 = (Switch) v.findViewById(R.id.switch1);
         }
     }
 
@@ -71,19 +85,17 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    DeviceAdapter(List<AdapterData> myDataset) {
+    DeviceAdapter(List<AdapterData> myDataset, Context context1) {
         values = myDataset;
+        context = context1;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent,
-                                         int viewType) {
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
-        LayoutInflater inflater = LayoutInflater.from(
-                parent.getContext());
-        View v =
-                inflater.inflate(R.layout.row_layout, parent, false);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        View v = inflater.inflate(R.layout.row_layout, parent, false);
         // set the view's size, margins, paddings and layout parameters
         ViewHolder vh = new ViewHolder(v);
         return vh;
@@ -95,15 +107,18 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         final AdapterData item = values.get(position);
-        holder.txtHeader.setText(item.name);
-        holder.txtHeader.setOnClickListener(new View.OnClickListener() {
+        holder.description.setText(item.description);
+        holder.description.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                remove(position);
+                Intent intent = new Intent(context, ParticularSensorActivity.class);
+                context.startActivity(intent);
             }
         });
 
-        holder.txtFooter.setText(item.description);
+        holder.icon.setImageResource(item.getIcon());
+        holder.name.setText(item.name);
+        holder.switch1.setChecked(item.sensorState == 1);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -141,15 +156,22 @@ public class SensorsActivity extends AppCompatActivity {
         }
     };
 
+    public static int getRandom(Integer length) {
+        return new Random().nextInt(length);
+    }
+
     private List<AdapterData> getSensorsData() {
         List<AdapterData> data = new ArrayList<>();
+
+        String[] types = new String[] {"camera", "temp_sensor", "door_switch", "another"};
 
         // TODO: here will be rest api request in future
         for (int i=0; i<100; i++) {
             data.add(new AdapterData(
                     "Тестовый датчик " + i,
                     "Здесь идет описание",
-                    Integer.toString(i%3)));
+                    types[getRandom(types.length)],
+                    getRandom(2)));
         }
 
         return data;
@@ -172,7 +194,7 @@ public class SensorsActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         List<AdapterData> input = getSensorsData();
 
-        DeviceAdapter mAdapter = new DeviceAdapter(input);
+        DeviceAdapter mAdapter = new DeviceAdapter(input, SensorsActivity.this);
 
         recyclerView.setAdapter(mAdapter);
     }

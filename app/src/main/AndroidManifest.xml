@@ -26,16 +26,18 @@
         </activity>
         <activity
             android:name=".SensorsActivity"
-            android:noHistory="true"/>
+            android:noHistory="true" />
         <activity
             android:name=".AlertsActivity"
-            android:noHistory="true"/>
+            android:noHistory="true" />
         <activity
             android:name=".SettingsActivity"
-            android:noHistory="true"/>
+            android:noHistory="true" />
         <activity
             android:name=".HomeActivity"
-            android:noHistory="true"/>
+            android:noHistory="true" />
+        <activity
+            android:name=".ParticularSensorActivity" />
     </application>
 
 </manifest>
