@@ -3,16 +3,13 @@
 
     <!-- Strings related to login -->
     <string name="prompt_email">Логин</string>
-    <string name="prompt_password">Password (optional)</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
+    <string name="action_sign_in_short">Войдите</string>
+    <string name="error_invalid_email">Неверный формат логина</string>
+    <string name="error_invalid_password">Слишком короткий пароль</string>
+    <string name="error_incorrect_password">Пароль ошибочен</string>
+    <string name="error_field_required">Это поле обязательно</string>
+    <string name="permission_rationale">Необходимо ввести учетные данные</string>
+
     <string name="password_required">Пароль</string>
     <string name="title_activity_main">Smart Home UI</string>
     <string name="title_home">Помещения</string>
@@ -22,6 +19,7 @@
     <string name="title_particular_sensor">Параметры датчика</string>
     <string name="title_notifications">Уведомления</string>
     <string name="action_log_in">Войти</string>
-    <string name="title_home_rooms">Помещения</string>
+    <string name="title_home_rooms">Профиль</string>
     <string name="title_alerts">Уведомления</string>
+    <string name="login_title">Авторизация</string>
 </resources>

@@ -1,11 +1,117 @@
 package com.example.pm.smarthomeui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+class HomeAdapterData {
+    public String description;
+    public Integer imagePath;
+
+    HomeAdapterData(String description, Integer imagePath) {
+        this.imagePath = imagePath;
+        this.description = description;
+    }
+
+    public Integer getImage() {
+        switch (this.imagePath) {
+            case 1:
+                return R.drawable.home_banner;
+            case 2:
+                return R.drawable.toyota_prius;
+            default:
+                return R.drawable.ic_launcher_background;
+        }
+    }
+}
+
+class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolder> {
+    private Context context;
+    private List<HomeAdapterData> values;
+
+    // Provide a reference to the views for each data item
+    // Complex data items may need more than one view per item, and
+    // you provide access to all the views for a data item in a view holder
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        // each data item is just a string in this case
+        TextView description;
+        ImageView rowImage;
+
+        public View layout;
+
+        ViewHolder(View v) {
+            super(v);
+            layout = v;
+            rowImage = (ImageView) v.findViewById(R.id.row_image);
+            description = (TextView) v.findViewById(R.id.home_description);
+        }
+    }
+
+    public void add(int position, HomeAdapterData item) {
+        values.add(position, item);
+        notifyItemInserted(position);
+    }
+
+    private void remove(int position) {
+        values.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    // Provide a suitable constructor (depends on the kind of dataset)
+    HomeDeviceAdapter(List<HomeAdapterData> myDataset, Context context1) {
+        values = myDataset;
+        context = context1;
+    }
+
+    @Override
+    public HomeDeviceAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // create a new view
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        View v = inflater.inflate(R.layout.home_row_layout, parent, false);
+        // set the view's size, margins, paddings and layout parameters
+        HomeDeviceAdapter.ViewHolder vh = new HomeDeviceAdapter.ViewHolder(v);
+        return vh;
+    }
+
+    // Replace the contents of a view (invoked by the layout manager)
+    @Override
+    public void onBindViewHolder(ViewHolder holder, final int position) {
+        // - get element from your dataset at this position
+        // - replace the contents of the view with that element
+        final HomeAdapterData item = values.get(position);
+        holder.description.setText(item.description);
+//        holder.description.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(context, ParticularSensorActivity.class);
+//                context.startActivity(intent);
+//            }
+//        });
+
+        holder.rowImage.setImageResource(item.getImage());
+    }
+
+    // Return the size of your dataset (invoked by the layout manager)
+    @Override
+    public int getItemCount() {
+        return values.size();
+    }
+
+}
 
 public class HomeActivity extends AppCompatActivity {
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -32,6 +138,21 @@ public class HomeActivity extends AppCompatActivity {
             return false;
         }
     };
+
+    private List<HomeAdapterData> getSensorsData() {
+        List<HomeAdapterData> data = new ArrayList<>();
+
+        data.add(new HomeAdapterData(
+                "Дом - улица Красных Цветов, Вюрцбург",
+                1));
+
+        data.add(new HomeAdapterData(
+                "Toyota Prius 221-546",
+                2));
+
+        return data;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,5 +162,17 @@ public class HomeActivity extends AppCompatActivity {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         navigation.getMenu().getItem(0).setChecked(true);
+
+        RecyclerView homeRecyclerView = (RecyclerView) findViewById(R.id.home_recycler_view);
+        homeRecyclerView.setHasFixedSize(true);
+
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        homeRecyclerView.setLayoutManager(llm);
+
+        List<HomeAdapterData> input = getSensorsData();
+
+        HomeDeviceAdapter mAdapter = new HomeDeviceAdapter(input, HomeActivity.this);
+
+        homeRecyclerView.setAdapter(mAdapter);
     }
 }

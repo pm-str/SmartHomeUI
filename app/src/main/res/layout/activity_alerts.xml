@@ -5,7 +5,7 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background2"
+    android:background="@color/ic_launcher_background"
     tools:context="com.example.pm.smarthomeui.AlertsActivity">
 
     <TextView

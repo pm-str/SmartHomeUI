@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -95,7 +94,7 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View v = inflater.inflate(R.layout.row_layout, parent, false);
+        View v = inflater.inflate(R.layout.sensors_row_layout, parent, false);
         // set the view's size, margins, paddings and layout parameters
         ViewHolder vh = new ViewHolder(v);
         return vh;
@@ -166,7 +165,7 @@ public class SensorsActivity extends AppCompatActivity {
         String[] types = new String[] {"camera", "temp_sensor", "door_switch", "another"};
 
         // TODO: here will be rest api request in future
-        for (int i=0; i<100; i++) {
+        for (int i=0; i<12; i++) {
             data.add(new AdapterData(
                     "Тестовый датчик " + i,
                     "Здесь идет описание",
@@ -187,7 +186,7 @@ public class SensorsActivity extends AppCompatActivity {
 
         navigation.getMenu().getItem(1).setChecked(true);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.home_recycler_view);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.sensor_recycler_view);
         recyclerView.setHasFixedSize(true);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
