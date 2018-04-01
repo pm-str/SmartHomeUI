@@ -92,17 +92,20 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
     public void onBindViewHolder(ViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
+        View.OnClickListener entityDetailsView = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, ParticularEntityActivity.class);
+                context.startActivity(intent);
+            }
+        };
+
         final HomeAdapterData item = values.get(position);
         holder.description.setText(item.description);
-//        holder.description.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(context, ParticularSensorActivity.class);
-//                context.startActivity(intent);
-//            }
-//        });
+        holder.description.setOnClickListener(entityDetailsView);
 
         holder.rowImage.setImageResource(item.getImage());
+        holder.rowImage.setOnClickListener(entityDetailsView);
     }
 
     // Return the size of your dataset (invoked by the layout manager)

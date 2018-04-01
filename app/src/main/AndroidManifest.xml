@@ -4,8 +4,6 @@
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="android.permission.READ_PROFILE" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:allowBackup="true"
@@ -26,19 +24,22 @@
         </activity>
         <activity
             android:name=".SensorsActivity"
-            android:noHistory="true" />
+            android:noHistory="false" />
         <activity
             android:name=".AlertsActivity"
-            android:noHistory="true" />
+            android:noHistory="false" />
         <activity
             android:name=".SettingsActivity"
-            android:noHistory="true" />
+            android:noHistory="false" />
         <activity
             android:name=".HomeActivity"
-            android:noHistory="true" />
+            android:noHistory="false" />
         <activity
             android:name=".ParticularSensorActivity"
-            android:noHistory="true" />
+            android:noHistory="false" />
+        <activity
+            android:name=".ParticularEntityActivity"
+            android:noHistory="false" />
     </application>
 
 </manifest>

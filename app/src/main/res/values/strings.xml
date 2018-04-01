@@ -17,6 +17,7 @@
     <string name="title_sensors">Датчики</string>
     <string name="title_settings">Настройки</string>
     <string name="title_particular_sensor">Параметры датчика</string>
+    <string name="title_particular_entity">Параметры объекта</string>
     <string name="title_notifications">Уведомления</string>
     <string name="action_log_in">Войти</string>
     <string name="title_home_rooms">Профиль</string>
