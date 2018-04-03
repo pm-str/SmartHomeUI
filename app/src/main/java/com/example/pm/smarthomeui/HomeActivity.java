@@ -57,6 +57,7 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
             super(v);
             layout = v;
             rowImage = (ImageView) v.findViewById(R.id.row_image);
+            rowImage.alig
             description = (TextView) v.findViewById(R.id.home_description);
         }
     }
@@ -146,12 +147,16 @@ public class HomeActivity extends AppCompatActivity {
         List<HomeAdapterData> data = new ArrayList<>();
 
         data.add(new HomeAdapterData(
-                "Дом - улица Красных Цветов, Вюрцбург",
+                "12 St. Kilian Cathedral, Wurzburg",
                 1));
 
         data.add(new HomeAdapterData(
                 "Toyota Prius 221-546",
                 2));
+
+        data.add(new HomeAdapterData(
+                "Unknown future object",
+                3));
 
         return data;
     }

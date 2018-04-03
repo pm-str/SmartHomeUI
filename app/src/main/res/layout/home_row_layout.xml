@@ -4,7 +4,9 @@
     android:layout_width="fill_parent"
     android:layout_height="170dp"
     android:layout_marginBottom="5dp"
-    android:background="@color/colorPrimary"
+    android:background="@drawable/round_rectangle"
+    android:backgroundTintMode="add"
+    android:foregroundTintMode="src_over"
     android:padding="6dip"
     android:scaleX="1"
     android:scaleY="1">
@@ -29,6 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/home_description"
         android:layout_alignParentStart="true"
+        android:layout_centerHorizontal="true"
         android:contentDescription="TODO"
         app:srcCompat="@drawable/home_banner" />
 
