@@ -107,17 +107,17 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
         // - replace the contents of the view with that element
         final AdapterData item = values.get(position);
         holder.description.setText(item.description);
-        holder.description.setOnClickListener(new View.OnClickListener() {
+        holder.icon.setImageResource(item.getIcon());
+        holder.name.setText(item.name);
+        holder.switch1.setChecked(item.sensorState == 1);
+
+        holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, ParticularSensorActivity.class);
                 context.startActivity(intent);
             }
         });
-
-        holder.icon.setImageResource(item.getIcon());
-        holder.name.setText(item.name);
-        holder.switch1.setChecked(item.sensorState == 1);
     }
 
     // Return the size of your dataset (invoked by the layout manager)

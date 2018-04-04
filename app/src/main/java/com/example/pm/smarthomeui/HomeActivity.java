@@ -102,10 +102,8 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
 
         final HomeAdapterData item = values.get(position);
         holder.description.setText(item.description);
-        holder.description.setOnClickListener(entityDetailsView);
-
         holder.rowImage.setImageResource(item.getImage());
-        holder.rowImage.setOnClickListener(entityDetailsView);
+        holder.layout.setOnClickListener(entityDetailsView);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
