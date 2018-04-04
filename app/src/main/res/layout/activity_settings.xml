@@ -65,15 +65,15 @@
                 android:layout_centerVertical="true" />
 
             <EditText
-                android:inputType="none"
-                android:focusable="false"
-                android:clickable="true"
                 android:id="@+id/notificationsEditText"
                 android:layout_width="170dp"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:layout_toStartOf="@+id/notificationsCheckBox"
+                android:clickable="true"
                 android:ems="10"
+                android:focusable="false"
+                android:inputType="none"
                 android:text="с 00:00 - до 23:59"
                 android:textAlignment="textStart"
                 android:textColorLink="@color/colorPrimaryDark" />
@@ -115,7 +115,7 @@
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
                 android:layout_centerVertical="true"
-                android:text="Период обновления (сек)"
+                android:text="Обновление данных (сек)"
                 android:textSize="18sp" />
 
             <EditText
@@ -128,6 +128,32 @@
                 android:ems="10"
                 android:inputType="textPersonName"
                 android:text="15" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="Хранение логов (дней)"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/editText"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:layout_centerVertical="true"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text="90" />
         </RelativeLayout>
 
     </LinearLayout>

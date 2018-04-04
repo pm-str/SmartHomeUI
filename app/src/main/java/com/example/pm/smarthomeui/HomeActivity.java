@@ -34,7 +34,7 @@ class HomeAdapterData {
             case 2:
                 return R.drawable.toyota_prius;
             default:
-                return R.drawable.ic_launcher_background;
+                return R.drawable.work_space;
         }
     }
 }
@@ -57,7 +57,6 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
             super(v);
             layout = v;
             rowImage = (ImageView) v.findViewById(R.id.row_image);
-            rowImage.alig
             description = (TextView) v.findViewById(R.id.home_description);
         }
     }
@@ -155,7 +154,7 @@ public class HomeActivity extends AppCompatActivity {
                 2));
 
         data.add(new HomeAdapterData(
-                "Unknown future object",
+                "Central work office, Sputnik 33",
                 3));
 
         return data;
