@@ -22,6 +22,8 @@ import java.util.List;
 class NotificationAdapterData {
     public String time;
     public String description;
+    public Integer sensor_id;
+    public Integer entity_id;
 
     NotificationAdapterData(String time, String description) {
         this.time = time;

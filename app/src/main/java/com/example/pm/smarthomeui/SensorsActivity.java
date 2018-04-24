@@ -25,6 +25,9 @@ class AdapterData {
     public String description;
     public String type;
     public Integer sensorState;
+    public Integer entity_id;
+    public Integer sensor_id;
+    public Boolean is_active;
 
     AdapterData(String name, String description, String type, Integer sensorState) {
         this.name = name;

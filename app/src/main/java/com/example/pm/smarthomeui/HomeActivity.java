@@ -20,18 +20,18 @@ import java.util.List;
 
 class HomeAdapterData {
     public String description;
-    public Integer imagePath;
+    public String image;
 
-    HomeAdapterData(String description, Integer imagePath) {
-        this.imagePath = imagePath;
+    HomeAdapterData(String description, String image) {
+        this.image = image;
         this.description = description;
     }
 
     public Integer getImage() {
-        switch (this.imagePath) {
-            case 1:
+        switch (this.image) {
+            case "1":
                 return R.drawable.home_banner;
-            case 2:
+            case "2":
                 return R.drawable.toyota_prius;
             default:
                 return R.drawable.work_space;
@@ -145,15 +145,15 @@ public class HomeActivity extends AppCompatActivity {
 
         data.add(new HomeAdapterData(
                 "12 St. Kilian Cathedral, Wurzburg",
-                1));
+                "1"));
 
         data.add(new HomeAdapterData(
                 "Toyota Prius 221-546",
-                2));
+                "2"));
 
         data.add(new HomeAdapterData(
                 "Central work office, Sputnik 33",
-                3));
+                "3"));
 
         return data;
     }
