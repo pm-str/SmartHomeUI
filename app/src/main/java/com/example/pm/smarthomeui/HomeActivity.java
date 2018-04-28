@@ -1,7 +1,14 @@
 package com.example.pm.smarthomeui;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +22,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -140,22 +152,24 @@ public class HomeActivity extends AppCompatActivity {
         }
     };
 
-    private List<HomeAdapterData> getSensorsData() {
-        List<HomeAdapterData> data = new ArrayList<>();
+    private List<HomeAdapterData> getSensorsData() throws IOException, JSONException {
+        List<HomeAdapterData> dataArray = new ArrayList<>();
+        SharedPreferences preference = getSharedPreferences("myPrefs", MODE_PRIVATE);
 
-        data.add(new HomeAdapterData(
-                "12 St. Kilian Cathedral, Wurzburg",
-                "1"));
+        String url = "entity/";
+        String dataString = HttpGETClient.main(url, preference);
 
-        data.add(new HomeAdapterData(
-                "Toyota Prius 221-546",
-                "2"));
+        JSONArray array = new JSONArray(dataString);
+        for (int i = 0; i < array.length(); i++)
+        {
+            JSONObject entity = array.getJSONObject(i);
 
-        data.add(new HomeAdapterData(
-                "Central work office, Sputnik 33",
-                "3"));
+            dataArray.add(new HomeAdapterData(
+                    entity.getString("description"),
+                    entity.getString("icon")));
+        }
 
-        return data;
+        return dataArray;
     }
 
     @Override
@@ -174,10 +188,32 @@ public class HomeActivity extends AppCompatActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         homeRecyclerView.setLayoutManager(llm);
 
-        List<HomeAdapterData> input = getSensorsData();
+        HomeData homeTask = new HomeData(homeRecyclerView);
+        homeTask.execute((Void) null);
+    }
 
-        HomeDeviceAdapter mAdapter = new HomeDeviceAdapter(input, HomeActivity.this);
+    public class HomeData extends AsyncTask<Void, Void, Boolean> {
 
-        homeRecyclerView.setAdapter(mAdapter);
+        private RecyclerView view;
+
+        HomeData(RecyclerView recyclerView) {
+            this.view = recyclerView;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            List<HomeAdapterData> input = null;
+            try {
+                input = getSensorsData();
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+                return false;
+            }
+
+            HomeDeviceAdapter mAdapter = new HomeDeviceAdapter(input, HomeActivity.this);
+            this.view.setAdapter(mAdapter);
+
+            return true;
+        }
     }
 }

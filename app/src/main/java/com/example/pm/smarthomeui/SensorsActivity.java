@@ -24,7 +24,7 @@ class AdapterData {
     public String name;
     public String description;
     public String type;
-    public Integer sensorState;
+    public Integer sensor_state;
     public Integer entity_id;
     public Integer sensor_id;
     public Boolean is_active;
@@ -33,7 +33,7 @@ class AdapterData {
         this.name = name;
         this.description = description;
         this.type = type;
-        this.sensorState = sensorState;
+        this.sensor_state = sensorState;
     }
 
     public Integer getIcon() {
@@ -112,7 +112,7 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
         holder.description.setText(item.description);
         holder.icon.setImageResource(item.getIcon());
         holder.name.setText(item.name);
-        holder.switch1.setChecked(item.sensorState == 1);
+        holder.switch1.setChecked(item.sensor_state == 1);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override

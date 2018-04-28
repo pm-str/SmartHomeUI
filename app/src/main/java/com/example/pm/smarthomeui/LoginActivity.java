@@ -22,7 +22,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -33,16 +32,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -261,7 +250,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         };
 
         int ADDRESS = 0;
-        int IS_PRIMARY = 1;
     }
 
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
@@ -276,54 +264,24 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            String authPath = "api/v1/login/";
-            String loginUrl = "https://tender-fish-88.localtunnel.me/" + authPath;
+            String loginUrl = "login/";
 
-            try {
-                URL url = new URL(loginUrl);
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setDoOutput(true);
+            Uri.Builder builder = new Uri.Builder()
+                    .appendQueryParameter("username", this.mEmail)
+                    .appendQueryParameter("password", this.mPassword);
 
-                //Building URI
-                Uri.Builder builder = new Uri.Builder()
-                        .appendQueryParameter("username", this.mEmail)
-                        .appendQueryParameter("password", this.mPassword);
+            SharedPreferences preference = getSharedPreferences("myPrefs", MODE_PRIVATE);
 
-                //Getting object of OutputStream from urlConnection to write some data to stream
-                OutputStream outputStream = urlConnection.getOutputStream();
+            String data = HttpPOSTClient.main(loginUrl, builder, preference);
 
-                //Writer to write data to OutputStream
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                bufferedWriter.write(builder.build().getEncodedQuery());
-                bufferedWriter.flush();
-                bufferedWriter.close();
-                outputStream.close();
+            String token = data.substring(10, data.indexOf("user_id")-3);
+            String username = data.substring(data.indexOf("email")+8, data.indexOf("}")-1);
 
-                urlConnection.connect();
+            SharedPreferences preferences = getSharedPreferences("myPrefs", MODE_PRIVATE);
+            preferences.edit().putString("token", token).apply();
+            preferences.edit().putString("username", username).apply();
 
-                //Getting input stream from connection, that is response which we got from server
-                InputStream inputStream = urlConnection.getInputStream();
-
-                //Reading the response
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                String data = bufferedReader.readLine();
-                bufferedReader.close();
-
-                //Returning the response message to onPostExecute method
-                String token = data.substring(10, 49);
-                String username = data.substring(data.indexOf("email")+8, data.indexOf("}")-1);
-
-                SharedPreferences preferences = getSharedPreferences("myPrefs", MODE_PRIVATE);
-                preferences.edit().putString("token", token).apply();
-                preferences.edit().putString("username", username).apply();
-
-                if (token.length() > 0 && username.length() > 0) {
-                    return true;
-                }
-            } catch (IOException e) {
-                Log.e("Error: ", e.getMessage(), e);
-            }
-            return false;
+            return token.length() > 0 && username.length() > 0;
         }
 
         @Override
