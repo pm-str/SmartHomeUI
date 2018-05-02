@@ -1,7 +1,13 @@
 package com.example.pm.smarthomeui;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
@@ -13,10 +19,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import static java.util.Arrays.asList;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 class NotificationAdapterData {
@@ -69,7 +87,6 @@ class NotificationRecyclerViewAdapter extends RecyclerView.Adapter<NotificationR
         notifyItemRemoved(position);
     }
 
-    // Provide a suitable constructor (depends on the kind of dataset)
     NotificationRecyclerViewAdapter(List<NotificationAdapterData> myDataset, Context context1) {
         values = myDataset;
         context = context1;
@@ -77,15 +94,12 @@ class NotificationRecyclerViewAdapter extends RecyclerView.Adapter<NotificationR
 
     @Override
     public NotificationRecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // create a new view
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View v = inflater.inflate(R.layout.notification_row_layout, parent, false);
-        // set the view's size, margins, paddings and layout parameters
         NotificationRecyclerViewAdapter.ViewHolder vh = new NotificationRecyclerViewAdapter.ViewHolder(v);
         return vh;
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
         final NotificationAdapterData item = values.get(position);
@@ -93,7 +107,6 @@ class NotificationRecyclerViewAdapter extends RecyclerView.Adapter<NotificationR
         holder.description.setText(item.description);
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return values.size();
@@ -129,7 +142,6 @@ class AlertsRecyclerViewAdapter extends RecyclerView.Adapter<AlertsRecyclerViewA
         notifyItemRemoved(position);
     }
 
-    // Provide a suitable constructor (depends on the kind of dataset)
     AlertsRecyclerViewAdapter(List<AlertsAdapterData> myDataset, Context context1) {
         values = myDataset;
         context = context1;
@@ -137,10 +149,8 @@ class AlertsRecyclerViewAdapter extends RecyclerView.Adapter<AlertsRecyclerViewA
 
     @Override
     public AlertsRecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // create a new view
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View v = inflater.inflate(R.layout.alerts_row_layout, parent, false);
-        // set the view's size, margins, paddings and layout parameters
         AlertsRecyclerViewAdapter.ViewHolder vh = new AlertsRecyclerViewAdapter.ViewHolder(v);
         return vh;
     }
@@ -148,19 +158,8 @@ class AlertsRecyclerViewAdapter extends RecyclerView.Adapter<AlertsRecyclerViewA
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
-//        View.OnClickListener entityDetailsView = new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(context, ParticularEntityActivity.class);
-//                context.startActivity(intent);
-//            }
-//        };
-
         final AlertsAdapterData item = values.get(position);
         holder.date.setText(item.date);
-//        holder.date.setOnClickListener(entityDetailsView);
 
         holder.rowDetails.setHasFixedSize(true);
         LinearLayoutManager llm = new LinearLayoutManager(context);
@@ -171,11 +170,8 @@ class AlertsRecyclerViewAdapter extends RecyclerView.Adapter<AlertsRecyclerViewA
         NotificationRecyclerViewAdapter mAdapter = new NotificationRecyclerViewAdapter(input, context);
 
         holder.rowDetails.setAdapter(mAdapter);
-
-//        holder.rowImage.setOnClickListener(entityDetailsView);
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return values.size();
@@ -184,11 +180,18 @@ class AlertsRecyclerViewAdapter extends RecyclerView.Adapter<AlertsRecyclerViewA
 }
 
 public class AlertsActivity extends AppCompatActivity {
+    public AlertsAsyncData alertAsyncTask;
+    public View mProgressView;
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            if (alertAsyncTask != null) {
+                alertAsyncTask.cancel(false);
+            }
+
             switch (item.getItemId()) {
                 case R.id.navigation_home:
                     Intent intent1 = new Intent(AlertsActivity.this, HomeActivity.class);
@@ -209,25 +212,25 @@ public class AlertsActivity extends AppCompatActivity {
         }
     };
 
-    private List<AlertsAdapterData> getNotificationsData() {
-        List<AlertsAdapterData> data = new ArrayList<>();
+    private void setVisibility(final boolean show) {
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-        data.add(new AlertsAdapterData("01 января 2017", asList(
-                new NotificationAdapterData("07:15", "Открыта дверь в гостинную."),
-                new NotificationAdapterData("14:13", "Позвонили в дверь."))
-        ));
-        data.add(new AlertsAdapterData("02 февраля 2017", asList(
-                new NotificationAdapterData("06:00", "Поздний рассвет, включено освещение, уютненько."),
-                new NotificationAdapterData("13:40", "Открыта дверь в гостинную."))
-        ));
-        data.add(new AlertsAdapterData("03 марта 2018", asList(
-                new NotificationAdapterData("08:00", "Что-то обнаруженно, изучаю."),
-                new NotificationAdapterData("09:20", "Включен будильник."),
-                new NotificationAdapterData("09:30", "Получено сообщение от Джонатона."),
-                new NotificationAdapterData("16:53", "В рабочей комнате кто-то есть."))
-        ));
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
+    }
 
-        return data;
+    private JSONArray getNotificationsData() throws JSONException {
+        SharedPreferences preference = getSharedPreferences("myPrefs", MODE_PRIVATE);
+
+        String url = "event/";
+
+        return new JSONArray(HttpGETClient.main(url, preference));
     }
 
     @Override
@@ -235,21 +238,91 @@ public class AlertsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_alerts);
 
+        mProgressView = findViewById(R.id.login_progress);
         BottomNavigationView navigation = findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         navigation.getMenu().getItem(2).setChecked(true);
 
-        RecyclerView alertsRecyclerView = (RecyclerView) findViewById(R.id.alerts_recycler_view);
-        alertsRecyclerView.setHasFixedSize(true);
-
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        alertsRecyclerView.setLayoutManager(llm);
-
-        List<AlertsAdapterData> input = getNotificationsData();
-
-        AlertsRecyclerViewAdapter mAdapter = new AlertsRecyclerViewAdapter(input, AlertsActivity.this);
-
-        alertsRecyclerView.setAdapter(mAdapter);
+        this.alertAsyncTask = new AlertsAsyncData(this);
+        AsyncTask.Status status = this.alertAsyncTask.getStatus();
+        if (status == AsyncTask.Status.RUNNING) {
+            this.alertAsyncTask.cancel(true);
+        }
+        this.alertAsyncTask.execute((Void) null);
     }
+
+    public class AlertsAsyncData extends AsyncTask<Void, Void, Boolean> {
+
+        private Context context;
+        private JSONArray array;
+        private RecyclerView alertsRecyclerView;
+        private List<AlertsAdapterData> data;
+
+        AlertsAsyncData(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            setVisibility(true);
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            alertsRecyclerView = findViewById(R.id.alerts_recycler_view);
+            alertsRecyclerView.setHasFixedSize(true);
+
+            LinearLayoutManager llm = new LinearLayoutManager(context);
+            alertsRecyclerView.setLayoutManager(llm);
+            try {
+                if (isCancelled()) { return false; }
+                array = getNotificationsData();
+                HashMap<String, List<NotificationAdapterData>> hm = new HashMap<>();
+
+                data = new ArrayList<>();
+
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject entity = array.getJSONObject(i);
+
+                    String date = entity.getString("date");
+                    String time = entity.getString("time");
+                    String desc = entity.getString("description");
+
+                    if (!hm.containsKey(date)) {
+                        hm.put(date, new ArrayList<NotificationAdapterData>());
+                    }
+                    hm.get(date).add(new NotificationAdapterData(time, desc));
+                }
+
+                for (HashMap.Entry<String, List<NotificationAdapterData>> aSet: hm.entrySet()) {
+                    String key = aSet.getKey();
+                    List<NotificationAdapterData> value = hm.get(key);
+
+                    data.add(new AlertsAdapterData(key, value));
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (isCancelled()) { return; }
+            AlertsRecyclerViewAdapter mAdapter = new AlertsRecyclerViewAdapter(this.data, AlertsActivity.this);
+            alertsRecyclerView.setAdapter(mAdapter);
+
+            setVisibility(false);
+        }
+
+        @Override
+        protected void onCancelled() {
+            alertAsyncTask = null;
+            setVisibility(false);
+        }
+    }
+
 }
