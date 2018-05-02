@@ -1,14 +1,13 @@
 package com.example.pm.smarthomeui;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.os.Build;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
@@ -27,27 +26,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 class HomeAdapterData {
-    public String description;
-    public String image;
+    String description;
+    String image;
 
     HomeAdapterData(String description, String image) {
         this.image = image;
         this.description = description;
-    }
-
-    public Integer getImage() {
-        switch (this.image) {
-            case "1":
-                return R.drawable.home_banner;
-            case "2":
-                return R.drawable.toyota_prius;
-            default:
-                return R.drawable.work_space;
-        }
     }
 }
 
@@ -94,16 +84,12 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
         // create a new view
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View v = inflater.inflate(R.layout.home_row_layout, parent, false);
-        // set the view's size, margins, paddings and layout parameters
-        HomeDeviceAdapter.ViewHolder vh = new HomeDeviceAdapter.ViewHolder(v);
-        return vh;
+        return new HomeDeviceAdapter.ViewHolder(v);
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         View.OnClickListener entityDetailsView = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -114,8 +100,11 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
 
         final HomeAdapterData item = values.get(position);
         holder.description.setText(item.description);
-        holder.rowImage.setImageResource(item.getImage());
         holder.layout.setOnClickListener(entityDetailsView);
+        if (holder.rowImage.getHeight() == 0) {
+            ThumbnailTask imgTask = new ThumbnailTask(holder.rowImage, item.image);
+            imgTask.execute();
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -124,6 +113,44 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
         return values.size();
     }
 
+}
+
+class ThumbnailTask extends AsyncTask<Integer, Void, Bitmap> {
+    @SuppressLint("StaticFieldLeak")
+    private ImageView imageView;
+    private Bitmap file;
+    private String url;
+
+    ThumbnailTask(ImageView imageView, String url) {
+        this.url = url;
+        this.imageView = imageView;
+    }
+
+    @Override
+    protected Bitmap doInBackground(Integer... params) {
+
+        Bitmap image = null;
+        try {
+            image = BitmapFactory.decodeStream((InputStream) new URL(this.url).getContent());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.file = image;
+
+        return image;
+    }
+
+    @Override
+    protected void onPostExecute(Bitmap bitmap) {
+        if (isCancelled()) {
+            bitmap = null;
+        }
+        if (this.file != null) {
+            this.imageView.setImageBitmap(this.file);
+        } else {
+            this.imageView.setImageResource(R.drawable.work_space);
+        }
+    }
 }
 
 public class HomeActivity extends AppCompatActivity {
@@ -160,13 +187,13 @@ public class HomeActivity extends AppCompatActivity {
         String dataString = HttpGETClient.main(url, preference);
 
         JSONArray array = new JSONArray(dataString);
-        for (int i = 0; i < array.length(); i++)
-        {
+        for (int i = 0; i < array.length(); i++) {
             JSONObject entity = array.getJSONObject(i);
 
-            dataArray.add(new HomeAdapterData(
-                    entity.getString("description"),
-                    entity.getString("icon")));
+            String desc = entity.getString("description");
+            String img = entity.getString("icon");
+
+            dataArray.add(new HomeAdapterData(desc, img));
         }
 
         return dataArray;
@@ -182,26 +209,26 @@ public class HomeActivity extends AppCompatActivity {
 
         navigation.getMenu().getItem(0).setChecked(true);
 
-        RecyclerView homeRecyclerView = (RecyclerView) findViewById(R.id.home_recycler_view);
-        homeRecyclerView.setHasFixedSize(true);
-
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        homeRecyclerView.setLayoutManager(llm);
-
-        HomeData homeTask = new HomeData(homeRecyclerView);
+        HomeData homeTask = new HomeData(this);
         homeTask.execute((Void) null);
     }
 
     public class HomeData extends AsyncTask<Void, Void, Boolean> {
 
-        private RecyclerView view;
+        private Context context;
 
-        HomeData(RecyclerView recyclerView) {
-            this.view = recyclerView;
+        HomeData(Context context) {
+            this.context = context;
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
+            RecyclerView homeRecyclerView = (RecyclerView) findViewById(R.id.home_recycler_view);
+            homeRecyclerView.setHasFixedSize(true);
+
+            LinearLayoutManager llm = new LinearLayoutManager(this.context);
+            homeRecyclerView.setLayoutManager(llm);
+
             List<HomeAdapterData> input = null;
             try {
                 input = getSensorsData();
@@ -211,7 +238,7 @@ public class HomeActivity extends AppCompatActivity {
             }
 
             HomeDeviceAdapter mAdapter = new HomeDeviceAdapter(input, HomeActivity.this);
-            this.view.setAdapter(mAdapter);
+            homeRecyclerView.setAdapter(mAdapter);
 
             return true;
         }
