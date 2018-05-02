@@ -21,7 +21,7 @@
         android:contentDescription="TODO"
         android:foregroundGravity="center"
         android:maxHeight="40dp"
-        app:srcCompat="@drawable/home_banner" />
+        app:srcCompat="@drawable/loading" />
 
     <TextView
         android:id="@+id/home_description"

@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
@@ -32,12 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 class HomeAdapterData {
-    String description;
+    String description = " ";
     String image;
 
     HomeAdapterData(String description, String image) {
         this.image = image;
-        this.description = description;
+        if (description != null) {
+            this.description = description;
+        }
     }
 }
 
@@ -101,10 +102,8 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
         final HomeAdapterData item = values.get(position);
         holder.description.setText(item.description);
         holder.layout.setOnClickListener(entityDetailsView);
-        if (holder.rowImage.getHeight() == 0) {
-            ThumbnailTask imgTask = new ThumbnailTask(holder.rowImage, item.image);
-            imgTask.execute();
-        }
+        ThumbnailTask imgTask = new ThumbnailTask(holder.rowImage, item.image);
+        imgTask.execute();
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -216,6 +215,8 @@ public class HomeActivity extends AppCompatActivity {
     public class HomeData extends AsyncTask<Void, Void, Boolean> {
 
         private Context context;
+        private List<HomeAdapterData> input;
+        private RecyclerView homeRecyclerView;
 
         HomeData(Context context) {
             this.context = context;
@@ -223,24 +224,25 @@ public class HomeActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            RecyclerView homeRecyclerView = (RecyclerView) findViewById(R.id.home_recycler_view);
+            this.homeRecyclerView = (RecyclerView) findViewById(R.id.home_recycler_view);
             homeRecyclerView.setHasFixedSize(true);
 
             LinearLayoutManager llm = new LinearLayoutManager(this.context);
             homeRecyclerView.setLayoutManager(llm);
 
-            List<HomeAdapterData> input = null;
             try {
-                input = getSensorsData();
+                this.input = getSensorsData();
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
                 return false;
             }
 
+            return true;
+        }
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
             HomeDeviceAdapter mAdapter = new HomeDeviceAdapter(input, HomeActivity.this);
             homeRecyclerView.setAdapter(mAdapter);
-
-            return true;
         }
     }
 }
