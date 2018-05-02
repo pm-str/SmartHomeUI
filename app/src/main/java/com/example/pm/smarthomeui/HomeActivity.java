@@ -1,6 +1,7 @@
 package com.example.pm.smarthomeui;
 
-import android.annotation.SuppressLint;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,14 +32,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 class HomeAdapterData {
-    String description = " ";
-    String image;
+    String description;
+    Bitmap image;
 
-    HomeAdapterData(String description, String image) {
+    HomeAdapterData(String description, Bitmap image) {
         this.image = image;
-        if (description != null) {
-            this.description = description;
-        }
+        this.description = description;
     }
 }
 
@@ -46,9 +45,6 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
     private Context context;
     private List<HomeAdapterData> values;
 
-    // Provide a reference to the views for each data item
-    // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder
     public class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
         TextView description;
@@ -74,7 +70,6 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
         notifyItemRemoved(position);
     }
 
-    // Provide a suitable constructor (depends on the kind of dataset)
     HomeDeviceAdapter(List<HomeAdapterData> myDataset, Context context1) {
         values = myDataset;
         context = context1;
@@ -82,13 +77,11 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
 
     @Override
     public HomeDeviceAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // create a new view
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View v = inflater.inflate(R.layout.home_row_layout, parent, false);
         return new HomeDeviceAdapter.ViewHolder(v);
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         View.OnClickListener entityDetailsView = new View.OnClickListener() {
@@ -102,8 +95,11 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
         final HomeAdapterData item = values.get(position);
         holder.description.setText(item.description);
         holder.layout.setOnClickListener(entityDetailsView);
-        ThumbnailTask imgTask = new ThumbnailTask(holder.rowImage, item.image);
-        imgTask.execute();
+        if (item.image != null) {
+            holder.rowImage.setImageBitmap(item.image);
+        } else {
+            holder.rowImage.setImageResource(R.drawable.work_space);
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -114,50 +110,16 @@ class HomeDeviceAdapter extends RecyclerView.Adapter<HomeDeviceAdapter.ViewHolde
 
 }
 
-class ThumbnailTask extends AsyncTask<Integer, Void, Bitmap> {
-    @SuppressLint("StaticFieldLeak")
-    private ImageView imageView;
-    private Bitmap file;
-    private String url;
-
-    ThumbnailTask(ImageView imageView, String url) {
-        this.url = url;
-        this.imageView = imageView;
-    }
-
-    @Override
-    protected Bitmap doInBackground(Integer... params) {
-
-        Bitmap image = null;
-        try {
-            image = BitmapFactory.decodeStream((InputStream) new URL(this.url).getContent());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.file = image;
-
-        return image;
-    }
-
-    @Override
-    protected void onPostExecute(Bitmap bitmap) {
-        if (isCancelled()) {
-            bitmap = null;
-        }
-        if (this.file != null) {
-            this.imageView.setImageBitmap(this.file);
-        } else {
-            this.imageView.setImageResource(R.drawable.work_space);
-        }
-    }
-}
-
 public class HomeActivity extends AppCompatActivity {
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+    public HomeData homeTask;
+    public View mProgressView;
 
+        private BottomNavigationView.OnNavigationItemSelectedListener onNavItemSL = new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            if (homeTask != null) {
+                homeTask.cancel(false);
+            }
             switch (item.getItemId()) {
                 case R.id.navigation_home:
                     return true;
@@ -178,48 +140,61 @@ public class HomeActivity extends AppCompatActivity {
         }
     };
 
-    private List<HomeAdapterData> getSensorsData() throws IOException, JSONException {
-        List<HomeAdapterData> dataArray = new ArrayList<>();
+    private String getSensorsData() throws IOException, JSONException {
         SharedPreferences preference = getSharedPreferences("myPrefs", MODE_PRIVATE);
 
         String url = "entity/";
-        String dataString = HttpGETClient.main(url, preference);
+        return HttpGETClient.main(url, preference);
+    }
 
-        JSONArray array = new JSONArray(dataString);
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject entity = array.getJSONObject(i);
+    private void setVisibility(final boolean show) {
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            String desc = entity.getString("description");
-            String img = entity.getString("icon");
-
-            dataArray.add(new HomeAdapterData(desc, img));
-        }
-
-        return dataArray;
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.activity_home);
 
+        mProgressView = findViewById(R.id.login_progress);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        navigation.setOnNavigationItemSelectedListener(onNavItemSL);
 
         navigation.getMenu().getItem(0).setChecked(true);
 
-        HomeData homeTask = new HomeData(this);
-        homeTask.execute((Void) null);
+        this.homeTask = new HomeData(this);
+        AsyncTask.Status status = this.homeTask.getStatus();
+        if (status == AsyncTask.Status.RUNNING) {
+            this.homeTask.cancel(true);
+        }
+        this.homeTask.execute((Void) null);
     }
 
     public class HomeData extends AsyncTask<Void, Void, Boolean> {
 
         private Context context;
-        private List<HomeAdapterData> input;
+        private JSONArray array;
+        private List<Bitmap> images = new ArrayList<>();
         private RecyclerView homeRecyclerView;
 
         HomeData(Context context) {
             this.context = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            setVisibility(true);
         }
 
         @Override
@@ -231,18 +206,51 @@ public class HomeActivity extends AppCompatActivity {
             homeRecyclerView.setLayoutManager(llm);
 
             try {
-                this.input = getSensorsData();
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
-                return false;
-            }
+                this.array = new JSONArray(getSensorsData());
 
+                for (int i = 0; i < this.array.length(); i++) {
+                    if(isCancelled()){ return false; }
+                    JSONObject entity = this.array.getJSONObject(i);
+                    String img = entity.getString("icon");
+                    try {
+                        this.images.add(BitmapFactory.decodeStream((InputStream) new URL(img).getContent()));
+                    } catch (IOException e) {
+                        Bitmap loading = BitmapFactory.decodeResource(context.getResources(), R.drawable.no);
+                        this.images.add(loading);
+                    }
+                }
+            } catch (JSONException | IOException e) {
+                e.printStackTrace();
+            }
             return true;
         }
+
         @Override
         protected void onPostExecute(Boolean aBoolean) {
-            HomeDeviceAdapter mAdapter = new HomeDeviceAdapter(input, HomeActivity.this);
-            homeRecyclerView.setAdapter(mAdapter);
+            List<HomeAdapterData> dataArray = new ArrayList<>();
+
+            for (int i = 0; i < this.array.length(); i++) {
+                if(isCancelled()){ return; }
+                JSONObject entity = null;
+                try {
+                    entity = this.array.getJSONObject(i);
+                    String name = entity.getString("name");
+
+                    dataArray.add(new HomeAdapterData(name, this.images.get(i)));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                HomeDeviceAdapter mAdapter = new HomeDeviceAdapter(dataArray, HomeActivity.this);
+                homeRecyclerView.setAdapter(mAdapter);
+            }
+            setVisibility(false);
+        }
+
+        @Override
+        protected void onCancelled() {
+            homeTask = null;
+            setVisibility(false);
         }
     }
 }
