@@ -1,7 +1,12 @@
 package com.example.pm.smarthomeui;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +21,10 @@ import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -24,16 +33,21 @@ class AdapterData {
     public String name;
     public String description;
     public String type;
-    public Integer sensor_state;
+    public Integer value;
     public Integer entity_id;
     public Integer sensor_id;
     public Boolean is_active;
 
-    AdapterData(String name, String description, String type, Integer sensorState) {
+    AdapterData(String name, String description, String type, Integer sensor_id,
+                Integer value, Boolean is_active, Integer entity_id) {
         this.name = name;
         this.description = description;
         this.type = type;
-        this.sensor_state = sensorState;
+        this.value = value;
+        this.is_active = is_active;
+        this.sensor_id = sensor_id;
+        this.entity_id = entity_id;
+
     }
 
     public Integer getIcon() {
@@ -54,11 +68,7 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
     private Context context;
     private List<AdapterData> values;
 
-    // Provide a reference to the views for each data item
-    // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder
     public class ViewHolder extends RecyclerView.ViewHolder {
-        // each data item is just a string in this case
         TextView description;
         TextView name;
         ImageView icon;
@@ -86,33 +96,26 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
         notifyItemRemoved(position);
     }
 
-    // Provide a suitable constructor (depends on the kind of dataset)
     DeviceAdapter(List<AdapterData> myDataset, Context context1) {
         values = myDataset;
         context = context1;
     }
 
-    // Create new views (invoked by the layout manager)
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // create a new view
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         View v = inflater.inflate(R.layout.sensors_row_layout, parent, false);
-        // set the view's size, margins, paddings and layout parameters
         ViewHolder vh = new ViewHolder(v);
         return vh;
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
         final AdapterData item = values.get(position);
         holder.description.setText(item.description);
         holder.icon.setImageResource(item.getIcon());
         holder.name.setText(item.name);
-        holder.switch1.setChecked(item.sensor_state == 1);
+        holder.switch1.setChecked(item.value == 1);
 
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,12 +135,17 @@ class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.ViewHolder> {
 }
 
 public class SensorsActivity extends AppCompatActivity {
+    public SensorAsyncTask homeTask;
+    public View mProgressView;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            if (homeTask != null) {
+                homeTask.cancel(false);
+            }
             switch (item.getItemId()) {
                 case R.id.navigation_home:
                     Intent intent1 = new Intent(SensorsActivity.this, HomeActivity.class);
@@ -158,46 +166,108 @@ public class SensorsActivity extends AppCompatActivity {
         }
     };
 
-    public static int getRandom(Integer length) {
-        return new Random().nextInt(length);
+    private void setVisibility(final boolean show) {
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 
-    private List<AdapterData> getSensorsData() {
-        List<AdapterData> data = new ArrayList<>();
+    private String getSensorsData() {
+        SharedPreferences preference = getSharedPreferences("myPrefs", MODE_PRIVATE);
 
-        String[] types = new String[] {"camera", "temp_sensor", "door_switch", "another"};
-
-        // TODO: here will be rest api request in future
-        for (int i=0; i<12; i++) {
-            data.add(new AdapterData(
-                    "Тестовый датчик " + i,
-                    "Здесь идет описание",
-                    types[getRandom(types.length)],
-                    getRandom(2)));
-        }
-
-        return data;
+        String url = "sensor/";
+        return HttpGETClient.main(url, preference);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensors);
+        mProgressView = findViewById(R.id.login_progress);
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         navigation.getMenu().getItem(1).setChecked(true);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.sensor_recycler_view);
-        recyclerView.setHasFixedSize(true);
+        this.homeTask = new SensorAsyncTask(this);
+        AsyncTask.Status status = this.homeTask.getStatus();
+        if (status == AsyncTask.Status.RUNNING) {
+            this.homeTask.cancel(true);
+        }
+        this.homeTask.execute((Void) null);
+    }
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-        List<AdapterData> input = getSensorsData();
+    public class SensorAsyncTask extends AsyncTask<Void, Void, Boolean> {
+        private Context context;
+        private JSONArray array;
+        private RecyclerView sensorRecycleView;
 
-        DeviceAdapter mAdapter = new DeviceAdapter(input, SensorsActivity.this);
+        SensorAsyncTask(Context context) {
+            this.context = context;
+        }
 
-        recyclerView.setAdapter(mAdapter);
+        @Override
+        protected void onPreExecute() {
+            setVisibility(true);
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            this.sensorRecycleView = findViewById(R.id.sensor_recycler_view);
+            this.sensorRecycleView.setHasFixedSize(true);
+
+            LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+            this.sensorRecycleView.setLayoutManager(layoutManager);
+            try {
+                this.array = new JSONArray(getSensorsData());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            List<AdapterData> dataArray = new ArrayList<>();
+
+            for (int i = 0; i < this.array.length(); i++) {
+                if(isCancelled()){ return; }
+                JSONObject entity;
+                try {
+                    entity = this.array.getJSONObject(i);
+
+                    Integer id = Integer.parseInt(entity.getString("id"));
+                    String name = entity.getString("name");
+                    String description = entity.getString("description");
+                    String s_type = entity.getString("s_type");
+                    Integer s_value = Integer.parseInt(entity.getString("s_value"));
+                    Boolean is_active = (Boolean.parseBoolean(entity.getString("is_active")));
+                    Integer entity_id = Integer.parseInt(entity.getString("entity"));
+
+                    dataArray.add(new AdapterData(name, description, s_type, id, s_value, is_active, entity_id));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                DeviceAdapter mAdapter = new DeviceAdapter(dataArray, SensorsActivity.this);
+                this.sensorRecycleView.setAdapter(mAdapter);
+            }
+            setVisibility(false);
+        }
+
+        @Override
+        protected void onCancelled() {
+            homeTask = null;
+            setVisibility(false);
+        }
     }
 }
