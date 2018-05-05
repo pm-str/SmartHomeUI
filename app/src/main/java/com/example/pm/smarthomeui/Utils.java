@@ -5,8 +5,8 @@ import android.content.SharedPreferences;
 import java.net.HttpURLConnection;
 
 class Utils {
-    static String getHost(String slug) {
-        String localhost = "http://192.168.1.44:8000/";
+    static String getHost(String slug, SharedPreferences preference) {
+        String localhost = "http://192.168.43.145:8000/";
 
         String api = "api/v1/";
         return localhost + api + slug;

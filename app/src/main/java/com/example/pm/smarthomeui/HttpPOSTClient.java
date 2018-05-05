@@ -18,7 +18,7 @@ class HttpPOSTClient {
         String body = "";
         try {
             HttpPOSTClient hce = new HttpPOSTClient();
-            body = hce.post(Utils.getHost(url), builder, pref);
+            body = hce.post(Utils.getHost(url, pref), builder, pref);
             System.out.println(body);
         } catch (IOException ioe) {
             ioe.printStackTrace();

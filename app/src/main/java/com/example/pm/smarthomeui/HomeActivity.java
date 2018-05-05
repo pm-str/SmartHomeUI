@@ -228,6 +228,9 @@ public class HomeActivity extends AppCompatActivity {
         protected void onPostExecute(Boolean aBoolean) {
             List<HomeAdapterData> dataArray = new ArrayList<>();
 
+            if (this.array == null) {
+                return;
+            }
             for (int i = 0; i < this.array.length(); i++) {
                 if(isCancelled()){ return; }
                 JSONObject entity = null;

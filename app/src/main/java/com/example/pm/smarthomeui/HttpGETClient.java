@@ -15,7 +15,7 @@ class HttpGETClient {
         String body = "";
         try {
             HttpGETClient hce = new HttpGETClient();
-            body = hce.get(Utils.getHost(url), pref);
+            body = hce.get(Utils.getHost(url, pref), pref);
             System.out.println(body);
         } catch (IOException ioe) {
             ioe.printStackTrace();

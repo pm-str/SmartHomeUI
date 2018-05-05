@@ -16,6 +16,8 @@ import android.widget.TextView;
 import com.borax12.materialdaterangepicker.time.RadialPickerLayout;
 import com.borax12.materialdaterangepicker.time.TimePickerDialog;
 
+import org.w3c.dom.Text;
+
 import java.util.Calendar;
 
 class TimeRangeListner implements TimePickerDialog.OnTimeSetListener {
@@ -105,5 +107,16 @@ public class SettingsActivity extends AppCompatActivity {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         navigation.getMenu().getItem(3).setChecked(true);
+
+        final Button buttonSaveSettings = findViewById(R.id.save_settings_id);
+        buttonSaveSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TextView textView = findViewById(R.id.server_text_id);
+                String host = textView.toString();
+                SharedPreferences preferences = getSharedPreferences("myPrefs", MODE_PRIVATE);
+                preferences.edit().putString("host", host).apply();
+            }
+        });
     }
 }

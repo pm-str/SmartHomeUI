@@ -248,6 +248,11 @@ public class SensorsActivity extends AppCompatActivity {
                     Integer id = Integer.parseInt(entity.getString("id"));
                     String name = entity.getString("name");
                     String description = entity.getString("description");
+
+                    Integer maxLength = 35;
+                    if (description.length() > maxLength) {
+                        description = description.substring(0, maxLength-3) + "...";
+                    }
                     String s_type = entity.getString("s_type");
                     Integer s_value = Integer.parseInt(entity.getString("s_value"));
                     Boolean is_active = (Boolean.parseBoolean(entity.getString("is_active")));
